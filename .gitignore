@@ -1,0 +1,31 @@
+# General
+*.log
+*.env
+
+# Node
+node_modules/
+
+# Yarn
+.yarn/
+.yarnrc.yml
+.yarn/releases/
+.yarn/plugins/
+.yarn/sdks/
+.yarn/cache/
+.pnp.*
+
+# Vite
+vite-plugin-ssr/client/dev/dll/
+vite-plugin-ssr/client/dev/dll-node/
+vite-plugin-ssr/client/dev/temp/
+vite-plugin-ssr/client/dist-server/
+
+# Editor
+.vscode/
+
+# API specific
+api/yarn.lock
+
+# Client specific
+client/yarn.lock
+client/dist/
