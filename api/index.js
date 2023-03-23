@@ -3,8 +3,10 @@ const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const UserModel = require('./models/User')
 const jsonWebToken = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const bodyParser = require('body-parser')
+const { request } = require('express')
 
 // Load environment variables
 dotenv.config()
@@ -27,6 +29,9 @@ const app = express()
 // Use the built-in middleware for parsing request bodies
 app.use(express.json())
 
+// Use cookie-parser middleware to parse cookies
+app.use(cookieParser())
+
 // Use CORS middleware to allow cross-origin requests
 app.use(
   cors({
@@ -39,6 +44,21 @@ app.get('/test', (req, res) => {
   res.json('test okay')
 })
 
+app.get('/profile', (req, res) => {
+  const token = req.cookies.token
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized No Token' })
+  }
+
+  try {
+    const userData = jsonWebToken.verify(token, jwtSecretKey)
+    res.json(userData)
+  } catch (err) {
+    console.log(err)
+    res.status(401).json({ message: 'Unauthorized Invalid Token' })
+  }
+})
+
 app.post('/register', async (req, res) => {
   const { username, password } = req.body
 
@@ -48,9 +68,9 @@ app.post('/register', async (req, res) => {
     await createdUser.save()
 
     // Generate a JSON web token and set it as a cookie
-    const token = jsonWebToken.sign({ userId: createdUser._id }, jwtSecretKey)
+    const token = jsonWebToken.sign({ userId: createdUser._id, username }, jwtSecretKey)
     res
-      .cookie('token', token, { httpOnly: true })
+      .cookie('token', token, { httpOnly: true , sameSite: 'none', secure: true})
       .status(201)
       .json({
         _id: createdUser._id,
