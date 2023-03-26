@@ -46,6 +46,7 @@ app.get('/test', (req, res) => {
 })
 
 app.get('/profile', (req, res) => {
+  /* Returns the user data associated with the JWT token in the 'token' cookie. */
   const token = req.cookies.token
   if (!token) {
     return res.status(401).json({ message: 'Unauthorized No Token' })
@@ -60,7 +61,9 @@ app.get('/profile', (req, res) => {
   }
 })
 
+
 app.post('/login', async (req, res) => {
+  /* Authenticates the user with the provided username and password, and returns a JWT token as a cookie. */
   const { username, password } = req.body
   const user = await UserModel.findOne({ username: username })
   if (user) {
@@ -88,6 +91,7 @@ app.post('/login', async (req, res) => {
 })
 
 app.post('/register', async (req, res) => {
+  /* Creates a new user with the provided username and password, and returns a JWT token as a cookie. */
   const { username, password } = req.body
 
   try {
@@ -118,6 +122,7 @@ app.post('/register', async (req, res) => {
   }
 })
 
-app.listen(4040, () => {
+const server = app.listen(4040, () => {
+  /* Starts the server and listens for incoming connections on port 4040. */
   console.log('Server listening on port 4040')
 })
