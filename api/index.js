@@ -6,7 +6,8 @@ const jsonWebToken = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const bodyParser = require('body-parser')
-const { request } = require('express')
+const { request, response } = require('express')
+const bcrypt = require('bcryptjs')
 
 // Load environment variables
 dotenv.config()
@@ -59,21 +60,56 @@ app.get('/profile', (req, res) => {
   }
 })
 
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body
+  const user = await UserModel.findOne({ username: username })
+  if (user) {
+    // Compare the plaintext password with the stored hash
+    const isSame = await bcrypt.compare(password, user.password)
+    if (isSame) {
+      jsonWebToken.sign(
+        { userId: user._id, username },
+        jwtSecretKey,
+        {},
+        (err, token) => {
+          res
+            .cookie('token', token, {
+              httpOnly: true,
+              sameSite: 'none',
+              secure: true
+            })
+            .json({
+              id: user._id
+            })
+        }
+      )
+    }
+  }
+})
+
 app.post('/register', async (req, res) => {
   const { username, password } = req.body
 
   try {
     // Create a new user object and save it to the database
-    const createdUser = new UserModel({ username, password })
+    const hashedPassword = await bcrypt.hash(password, 10)
+    // store hash in the database
+    const createdUser = new UserModel({ username, password: hashedPassword })
     await createdUser.save()
-
     // Generate a JSON web token and set it as a cookie
-    const token = jsonWebToken.sign({ userId: createdUser._id, username }, jwtSecretKey)
+    const token = jsonWebToken.sign(
+      { userId: createdUser._id, username },
+      jwtSecretKey
+    )
     res
-      .cookie('token', token, { httpOnly: true , sameSite: 'none', secure: true})
+      .cookie('token', token, {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true
+      })
       .status(201)
       .json({
-        _id: createdUser._id,
+        id: createdUser._id,
         message: `User ${createdUser._id} created successfully`
       })
   } catch (error) {
