@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Set the height of the root element to 100% */
+html {
+  height: 100%;
+}
+
+/* Set the height of the body element to 100% */
+body {
+  height: 100%;
+}
+
+/* Set the height of the Chat component to 
