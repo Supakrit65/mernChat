@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useContext } from "react";
 import { UserContext } from "./UserContext";
+import Avatar from "./Avatar";
 
 function Chat() {
   // State variables
   const [ws, setWs] = useState(null); // WebSocket connection
   const [onlinePeople, setOnlinePeople] = useState({}); // Online users
   const { username, id } = useContext(UserContext); // Current user data
+  const [selectedUserId, setSelectedUserId] = useState(null); // Selected userId for contact
 
   // Connect to WebSocket server on component mount
   useEffect(() => {
@@ -23,7 +25,7 @@ function Chat() {
         people[userId] = username;
       }
     });
-    console.log('showOnlinePeopl', people);
+    console.log("showOnlinePeople", people);
     setOnlinePeople(people);
   }
 
@@ -34,13 +36,18 @@ function Chat() {
     showOnlinePeople(messageData);
   }
 
+  function selectContact(userId) {
+    setSelectedUserId(userId);
+    console.log(userId + " is selected");
+  }
+
   return (
     <div className="h-screen flex flex-col">
       <div className="flex-1 flex">
         {/* Chat list */}
         <div className="w-1/3 h-full bg-stone-600 p-4">
           {/* Header */}
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex justify-between items-center mb-5">
             {/* Chat list title and icon */}
             <div className="flex items-center">
               <h2 className="text-white font-bold text-lg">Chat List</h2>
@@ -56,20 +63,20 @@ function Chat() {
           {/* Online people list */}
           <div className="bg-white p-2 rounded-lg">
             <ul className="mt-3 mx-3">
-              {Object.values(onlinePeople).map((u) => (
+              {Object.keys(onlinePeople).map((userId) => (
                 <li
-                  key={u}
+                  key={userId}
                   className={
-                    "flex items-center space-x-3 mb-3 p-2 rounded-lg bg-green-200"
+                    "flex items-center space-x-3 mb-3 p-2 rounded-lg " +
+                    (userId === selectedUserId
+                      ? "bg-green-300 border-solid border-4"
+                      : "bg-green-100")
                   }
+                  onClick={() => selectContact(userId)}
                 >
-                  <img
-                    src="https://picsum.photos/id/237/50/50"
-                    alt="avatar"
-                    className="rounded-full"
-                  />
+                  <Avatar username={onlinePeople[userId]} userId={userId} />
                   <div>
-                    <h3 className="font-bold">{u}</h3>
+                    <h3 className="font-bold">{onlinePeople[userId]}</h3>
                     <p className="text-gray-600 text-sm">Hello there</p>
                   </div>
                 </li>
@@ -83,7 +90,11 @@ function Chat() {
           <div className="flex flex-col h-full">
             {/* Messages */}
             <div className="flex-grow overflow-y-scroll">
-              Message with selected person
+              {!selectedUserId && (
+                <div className="flex h-full justify-center items-center font-semibold text-slate-400">
+                  &larr; Select a person from the sidebar
+                </div>
+              )}
             </div>
             {/* Message input */}
             <div className="flex gap-2">
